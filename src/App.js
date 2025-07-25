@@ -24,7 +24,7 @@ const HomePage = () => {
   const { navigateToPage, isAuthenticated } = useContext(AppContext);
   return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-green-100 to-blue-200 text-gray-800 p-4">
-        <img src="http://googleusercontent.com/file_content/1" alt="Coffee Society Haifa Logo" className="w-48 h-48 mb-8 rounded-full shadow-lg object-contain" />
+        <img src="/images/logo_csh.jpg" alt="Coffee Society Haifa Logo" className="w-48 h-48 mb-8 rounded-full shadow-lg object-contain" />
         <h1 className="text-5xl font-extrabold text-teal-700 mb-6 drop-shadow-md">Coffee Society Haifa</h1>
         <p className="text-xl text-center max-w-2xl mb-10 leading-relaxed">
           Welcome to Haifa's coffee lovers community! Discover new coffee shops, earn points, and get special rewards.
