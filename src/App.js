@@ -288,14 +288,14 @@ const CafeListPage = () => {
 
 // Scan QR Component
 const ScanQRPage = () => {
-  const { navigateToPage, userId, username } = useContext(AppContext);
+  const { navigateToPage, userId } = useContext(AppContext); // Removed 'username' as it was not used
   const [message, setMessage] = useState('');
   const [selectedCafeId, setSelectedCafeId] = useState('');
   const [cafes, setCafes] = useState([]);
   const [loadingCafes, setLoadingCafes] = useState(true);
   const [errorCafes, setErrorCafes] = useState(null);
   const [uploadFile, setUploadFile] = useState(null);
-  const [uploadingState, setUploadingState] = useState(false); // Renamed setUploading to setUploadingState to avoid no-unused-vars
+  const [uploadingState] = useState(false); // Removed setUploadingState as it was unused and now it's just a constant
 
   useEffect(() => {
     const getCafes = async () => {
@@ -334,9 +334,8 @@ const ScanQRPage = () => {
   };
 
   const handleFileUpload = async () => {
-    // Here you would typically setUploadingState(true) before the upload call
+    // This function is currently a placeholder as file upload backend endpoint is not implemented.
     setMessage('Uploading image/invoice is not fully implemented in this client-side demo without a file upload backend endpoint. Please use QR Scan.');
-    // And setUploadingState(false) in finally block
   };
 
   if (loadingCafes) return <Loading />;
@@ -396,7 +395,7 @@ const ScanQRPage = () => {
             />
             <button
                 onClick={handleFileUpload}
-                disabled={!uploadFile || uploadingState || !selectedCafeId || !userId} // Changed 'uploading' to 'uploadingState'
+                disabled={!uploadFile || uploadingState || !selectedCafeId || !userId}
                 className={`w-full py-3 px-6 rounded-full font-bold shadow-md transition duration-300 ease-in-out ${
                     uploadFile && selectedCafeId && userId && !uploadingState
                         ? 'bg-purple-600 hover:bg-purple-700 text-white transform hover:scale-105'
@@ -424,7 +423,7 @@ const ScanQRPage = () => {
 
 // Rate Cafe Component
 const RateCafePage = () => {
-  const { navigateToPage, userId } = useContext(AppContext); // Removed 'username' as it was not used
+  const { navigateToPage, userId } = useContext(AppContext);
   const [cafes, setCafes] = useState([]);
   const [selectedCafeId, setSelectedCafeId] = useState('');
   const [rating, setRating] = useState(0);
@@ -439,7 +438,7 @@ const RateCafePage = () => {
         setCafes(response.data);
       } catch (err) {
         console.error("Error fetching cafes for rating:", err.response ? err.response.data : err.message);
-        setMessage("Error loading coffee shops."); // Changed setError to setMessage as setError was not used
+        setMessage("Error loading coffee shops.");
       } finally {
         setLoading(false);
       }
@@ -459,7 +458,7 @@ const RateCafePage = () => {
       return;
     }
 
-    setLoading(true); // Set loading to true during submission
+    setLoading(true);
     try {
       const response = await api.sendRating({ cafeId: selectedCafeId, rating, comment });
       setMessage(response.data.message || 'Rating submitted successfully!');
@@ -470,12 +469,12 @@ const RateCafePage = () => {
       console.error("Error submitting rating:", e.response ? e.response.data : e.message);
       setMessage(e.response?.data?.message || 'Error submitting rating. Please try again.');
     } finally {
-      setLoading(false); // Set loading to false after submission
+      setLoading(false);
     }
   };
 
-  if (loading) return <Loading />; // Using local loading state for this component
-  if (message.startsWith("Error loading coffee shops.")) return <ErrorMessage message={message} />; // Using local message for error display
+  if (loading) return <Loading />;
+  if (message.startsWith("Error loading coffee shops.")) return <ErrorMessage message={message} />;
 
   return (
       <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
