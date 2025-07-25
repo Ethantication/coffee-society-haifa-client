@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import * as api from './services/api'; // Import the new API service
-import { jwtDecode } from 'jwt-decode'; // You'll need to install this: npm install jwt-decode
+import * as api from './services/api';
+import { jwtDecode } from 'jwt-decode';
 
 // Create a context for user data and API functions
 const AppContext = createContext(null);
@@ -38,7 +38,7 @@ const HomePage = () => {
             </button>
         ) : (
             <button
-                onClick={() => navigateToPage('login')} // Changed to login page
+                onClick={() => navigateToPage('login')}
                 className="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105"
             >
               Join the Coffee Community
@@ -48,7 +48,7 @@ const HomePage = () => {
   );
 };
 
-// New Login Component
+// Login Component
 const LoginPage = () => {
   const { handleLoginSuccess, navigateToPage } = useContext(AppContext);
   const [email, setEmail] = useState('');
@@ -62,11 +62,10 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const response = await api.loginUser({ email, password });
-      const { token, user } = response.data;
-      localStorage.setItem('token', token); // Store the token
+      const { token } = response.data;
+      localStorage.setItem('token', token);
       handleLoginSuccess(token);
       setMessage('Login successful!');
-      // navigateToPage('cafeList'); // Navigation handled by App component after token processing
     } catch (error) {
       console.error("Login error:", error.response ? error.response.data : error.message);
       setMessage(error.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -124,7 +123,7 @@ const LoginPage = () => {
   );
 };
 
-// New Register Component
+// Register Component
 const RegisterPage = () => {
   const { handleLoginSuccess, navigateToPage } = useContext(AppContext);
   const [username, setUsername] = useState('');
@@ -139,11 +138,10 @@ const RegisterPage = () => {
     setLoading(true);
     try {
       const response = await api.registerUser({ username, email, password });
-      const { token, user } = response.data;
-      localStorage.setItem('token', token); // Store the token
+      const { token } = response.data;
+      localStorage.setItem('token', token);
       handleLoginSuccess(token);
       setMessage('Registration successful!');
-      // navigateToPage('cafeList'); // Navigation handled by App component after token processing
     } catch (error) {
       console.error("Register error:", error.response ? error.response.data : error.message);
       setMessage(error.response?.data?.message || 'Registration failed. Please try again.');
@@ -213,7 +211,7 @@ const RegisterPage = () => {
 };
 
 
-// Cafe List Component (replacing UserDashboard's cafe display)
+// Cafe List Component
 const CafeListPage = () => {
   const { navigateToPage } = useContext(AppContext);
   const [cafes, setCafes] = useState([]);
@@ -258,7 +256,7 @@ const CafeListPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {cafes.map(cafe => (
                     <div
-                        key={cafe._id} // Assuming _id from MongoDB
+                        key={cafe._id}
                         className="bg-white rounded-xl shadow-md p-4 md:p-6 hover:shadow-lg transition duration-300 cursor-pointer flex flex-col"
                         onClick={() => navigateToPage('cafeDetail', { cafeId: cafe._id })}
                     >
@@ -290,14 +288,14 @@ const CafeListPage = () => {
 
 // Scan QR Component
 const ScanQRPage = () => {
-  const { navigateToPage, userId, username: currentUsername } = useContext(AppContext); // Added currentUsername
+  const { navigateToPage, userId, username } = useContext(AppContext);
   const [message, setMessage] = useState('');
   const [selectedCafeId, setSelectedCafeId] = useState('');
   const [cafes, setCafes] = useState([]);
   const [loadingCafes, setLoadingCafes] = useState(true);
   const [errorCafes, setErrorCafes] = useState(null);
-  const [uploadFile, setUploadFile] = useState(null); // Not directly used by the API, but kept for UI
-  const [uploading, setUploading] = useState(false); // Not directly used by the API, but kept for UI
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadingState, setUploadingState] = useState(false); // Renamed setUploading to setUploadingState to avoid no-unused-vars
 
   useEffect(() => {
     const getCafes = async () => {
@@ -316,7 +314,7 @@ const ScanQRPage = () => {
 
   const handleQRScan = async () => {
     setMessage('Scanning QR code...');
-    if (!userId) { // Check if user is authenticated (userId from JWT)
+    if (!userId) {
       setMessage('Error: User not authenticated.');
       return;
     }
@@ -326,7 +324,7 @@ const ScanQRPage = () => {
     }
 
     try {
-      const response = await api.scanQr(selectedCafeId); // Call the backend API
+      const response = await api.scanQr(selectedCafeId);
       const cafeName = cafes.find(c => c._id === selectedCafeId)?.name || 'Unknown Coffee Shop';
       setMessage(`🎉 ${response.data.message} for visiting ${cafeName}!`);
     } catch (e) {
@@ -336,8 +334,9 @@ const ScanQRPage = () => {
   };
 
   const handleFileUpload = async () => {
-    // This functionality needs backend implementation for actual file upload and admin approval
+    // Here you would typically setUploadingState(true) before the upload call
     setMessage('Uploading image/invoice is not fully implemented in this client-side demo without a file upload backend endpoint. Please use QR Scan.');
+    // And setUploadingState(false) in finally block
   };
 
   if (loadingCafes) return <Loading />;
@@ -397,14 +396,14 @@ const ScanQRPage = () => {
             />
             <button
                 onClick={handleFileUpload}
-                disabled={!uploadFile || uploading || !selectedCafeId || !userId}
+                disabled={!uploadFile || uploadingState || !selectedCafeId || !userId} // Changed 'uploading' to 'uploadingState'
                 className={`w-full py-3 px-6 rounded-full font-bold shadow-md transition duration-300 ease-in-out ${
-                    uploadFile && selectedCafeId && userId && !uploading
+                    uploadFile && selectedCafeId && userId && !uploadingState
                         ? 'bg-purple-600 hover:bg-purple-700 text-white transform hover:scale-105'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
             >
-              {uploading ? 'Uploading...' : 'Upload Image/Invoice'}
+              {uploadingState ? 'Uploading...' : 'Upload Image/Invoice'}
             </button>
             {!selectedCafeId && <p className="text-red-500 text-sm mt-2">Please select a coffee shop to upload a file.</p>}
             {!userId && <p className="text-red-500 text-sm mt-2">Please log in to upload files.</p>}
@@ -425,14 +424,13 @@ const ScanQRPage = () => {
 
 // Rate Cafe Component
 const RateCafePage = () => {
-  const { navigateToPage, userId, username: currentUsername } = useContext(AppContext);
+  const { navigateToPage, userId } = useContext(AppContext); // Removed 'username' as it was not used
   const [cafes, setCafes] = useState([]);
   const [selectedCafeId, setSelectedCafeId] = useState('');
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const getCafes = async () => {
@@ -441,7 +439,7 @@ const RateCafePage = () => {
         setCafes(response.data);
       } catch (err) {
         console.error("Error fetching cafes for rating:", err.response ? err.response.data : err.message);
-        setError("Error loading coffee shops.");
+        setMessage("Error loading coffee shops."); // Changed setError to setMessage as setError was not used
       } finally {
         setLoading(false);
       }
@@ -461,8 +459,9 @@ const RateCafePage = () => {
       return;
     }
 
+    setLoading(true); // Set loading to true during submission
     try {
-      const response = await api.sendRating({ cafeId: selectedCafeId, rating, comment }); // Call the backend API
+      const response = await api.sendRating({ cafeId: selectedCafeId, rating, comment });
       setMessage(response.data.message || 'Rating submitted successfully!');
       setSelectedCafeId('');
       setRating(0);
@@ -470,11 +469,13 @@ const RateCafePage = () => {
     } catch (e) {
       console.error("Error submitting rating:", e.response ? e.response.data : e.message);
       setMessage(e.response?.data?.message || 'Error submitting rating. Please try again.');
+    } finally {
+      setLoading(false); // Set loading to false after submission
     }
   };
 
-  if (loading) return <Loading />;
-  if (error) return <ErrorMessage message={error} />;
+  if (loading) return <Loading />; // Using local loading state for this component
+  if (message.startsWith("Error loading coffee shops.")) return <ErrorMessage message={message} />; // Using local message for error display
 
   return (
       <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
@@ -530,7 +531,7 @@ const RateCafePage = () => {
             </button>
             {!userId && <p className="text-red-500 text-sm mt-2">Please log in to submit a rating.</p>}
           </form>
-          {message && <p className="mt-6 text-center text-sm font-medium text-teal-600">{message}</p>}
+          {message && !message.startsWith("Error loading coffee shops.") && <p className="mt-6 text-center text-sm font-medium text-teal-600">{message}</p>}
           <button
               onClick={() => navigateToPage('cafeList')}
               className="mt-8 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-full shadow-md transition duration-300 w-full"
@@ -547,7 +548,7 @@ const RateCafePage = () => {
 const CafeDetailPage = ({ cafeId }) => {
   const { navigateToPage } = useContext(AppContext);
   const [cafe, setCafe] = useState(null);
-  const [baristas, setBaristas] = useState([]); // State for baristas
+  const [baristas, setBaristas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -559,13 +560,13 @@ const CafeDetailPage = ({ cafeId }) => {
         return;
       }
       try {
-        const cafeResponse = await api.fetchCafes(); // Fetch all cafes for simplicity, then find
+        const cafeResponse = await api.fetchCafes(); // Assuming this fetches all cafes
         const foundCafe = cafeResponse.data.find(c => c._id === cafeId);
 
         if (foundCafe) {
           setCafe(foundCafe);
-          // Assuming fetchBaristas fetches baristas *for this cafe*
-          const baristasResponse = await api.fetchBaristas(cafeId);
+          // Fetch baristas specifically for this cafe if the backend supports it
+          const baristasResponse = await api.fetchBaristas(foundCafe._id);
           setBaristas(baristasResponse.data);
         } else {
           setError("Coffee shop not found.");
@@ -579,7 +580,7 @@ const CafeDetailPage = ({ cafeId }) => {
     };
 
     fetchCafeDetails();
-  }, [cafeId]); // Re-fetch if cafeId changes
+  }, [cafeId]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorMessage message={error} />;
@@ -600,7 +601,6 @@ const CafeDetailPage = ({ cafeId }) => {
 
           <h2 className="text-5xl font-extrabold text-teal-700 mb-6 text-center">{cafe.name}</h2>
           <div className="relative w-full h-80 mb-6 rounded-lg overflow-hidden shadow-lg">
-            {/* Image Slider Placeholder - would implement using a library like Swiper.js or custom logic */}
             <img
                 src={cafe.imageUrl || "https://placehold.co/800x450/CCCCCC/333333?text=Cafe+Image"}
                 alt={cafe.name}
@@ -632,7 +632,7 @@ const CafeDetailPage = ({ cafeId }) => {
               </div>
           )}
 
-          {baristas && baristas.length > 0 && ( // Use the baristas state
+          {baristas && baristas.length > 0 && (
               <div>
                 <h3 className="text-3xl font-bold text-gray-800 mb-4">Meet Our Baristas</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -659,34 +659,31 @@ const CafeDetailPage = ({ cafeId }) => {
 const App = () => {
   const [currentPage, setCurrentPage] = useState('home');
   const [userId, setUserId] = useState(null);
-  const [username, setUsername] = useState(null); // Renamed from userName to username for consistency with API
+  const [username, setUsername] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loadingApp, setLoadingApp] = useState(true);
   const [appError, setAppError] = useState(null);
   const [cafeDetailId, setCafeDetailId] = useState(null);
 
   useEffect(() => {
-    // Check for existing token on app load
     const token = localStorage.getItem('token');
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        // Assuming token has { id: userId, username: username, role: userRole }
         setUserId(decoded.id);
         setUsername(decoded.username);
         setIsAuthenticated(true);
-        // Automatically go to cafe list if authenticated
         setCurrentPage('cafeList');
       } catch (error) {
         console.error("Failed to decode token or token is invalid:", error);
-        localStorage.removeItem('token'); // Clear invalid token
+        localStorage.removeItem('token');
         setIsAuthenticated(false);
         setUserId(null);
         setUsername(null);
         setCurrentPage('home');
       }
     } else {
-      setCurrentPage('home'); // Go to home if no token
+      setCurrentPage('home');
     }
     setLoadingApp(false);
   }, []);
@@ -697,7 +694,7 @@ const App = () => {
       setUserId(decoded.id);
       setUsername(decoded.username);
       setIsAuthenticated(true);
-      navigateToPage('cafeList'); // Navigate to cafe list after successful login/register
+      navigateToPage('cafeList');
     } catch (error) {
       console.error("Error processing token after login/register:", error);
       setAppError("Failed to process user data after login. Please try again.");
@@ -734,7 +731,6 @@ const App = () => {
     return <ErrorMessage message={appError} />;
   }
 
-  // Render current page based on state
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
@@ -743,15 +739,14 @@ const App = () => {
         return <LoginPage />;
       case 'register':
         return <RegisterPage />;
-      case 'cafeList': // Changed from userDashboard to cafeList
+      case 'cafeList':
         return <CafeListPage />;
-      case 'scanQr': // New component name
+      case 'scanQr':
         return <ScanQRPage />;
-      case 'rateCafe': // New component name
+      case 'rateCafe':
         return <RateCafePage />;
       case 'cafeDetail':
         return <CafeDetailPage cafeId={cafeDetailId} />;
-        // Removed adminPartnerDashboard for now, needs backend implementation
       default:
         return <HomePage />;
     }
@@ -765,7 +760,6 @@ const App = () => {
         navigateToPage,
         handleLoginSuccess
       }}>
-        {/* Global Navigation - visible if user is logged in (isAuthenticated is true) */}
         {isAuthenticated && (
             <nav className="bg-teal-700 p-4 shadow-md sticky top-0 z-10">
               <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -779,7 +773,6 @@ const App = () => {
                   <button onClick={() => navigateToPage('rateCafe')} className="text-white hover:text-teal-200 font-semibold px-3 py-2 rounded-md transition duration-300">
                     Rate Cafe
                   </button>
-                  {/* Add other navigation items as needed, potentially for admin/partner dashboards */}
                 </div>
                 <div className="flex items-center space-x-4">
                   <span className="text-white font-semibold">Hello, {username || 'User'}!</span>
